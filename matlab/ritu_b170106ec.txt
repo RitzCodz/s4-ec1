@@ -1,0 +1,331 @@
+----------------------------------------------------------------------
+%  RITU ANN ROY GEORGE B170106EC
+
+%  MATLAB ASSGT - 1 CODES
+----------------------------------------------------------------------
+
+% -------Question 1------
+
+%for a period of 10 in the range [-8,8]
+x = -8:.01:8;
+
+y = 1/ sqrt(2*pi) * exp(-x.*x/2);
+y = transpose(padarray(transpose(y),200,'both'));
+y_1 = y;
+t = -5:(1/(length(y) - 1))*10:5;
+
+%for plotting a periodic signal
+y = repmat(y,5);
+t = 0:(1/(length(y) - 1))*50:50;
+
+%taking the Fourier transform for magnitude and phase responses
+% using FFT
+n = 1024;
+f_y = fft(y_1,n);
+
+% for the magnitude spectra
+mag = (abs(f_y));
+subplot(2,1,1); 
+plot(mag);
+title('rQ1-Magnitude Response');
+xlabel('Freq');
+ylabel('Mag');
+
+% for the phase spectra
+%170106
+ang = (angle(f_y));
+plot(ang);
+subplot(2,1,2) 
+figure(2)
+title('rQ2-Phase Response');
+xlabel('Freq');
+ylabel('Phase');
+
+
+---------------------------------------------------------
+% -------Question 2------
+
+M = 8;  % 8-ary PAM
+m = 1:1:M; %for dividing into 8 parts
+x = 2 * m - 1 - M; % Equation for the PAM signal points
+plot(x,0,'r+','MarkerSize',10);  
+% using ‘+’ symbol to plot the points
+title('rQ4-8-ary PAM Constellation Diagram');
+
+----------------------------------------------------------
+%-----------Question 3 BPSK Constellation------
+clc 
+clear all
+close all
+num_symbols=10000;
+int_symbols=randi([1,2],1,num_symbols);
+%100000 random numbers in the range 1 to 2
+%170106
+bpsk_symbols=zeros(size(int_symbols));
+bpsk_symbols(int_symbols==1)=1;
+bpsk_symbols(int_symbols==2)=-1;
+
+plot(real(bpsk_symbols),imag(bpsk_symbols),'ored','linewidth',3);
+xlim([-2 2]);
+ylim([-2 2]);
+line(xlim,[0 0], 'color', 'k', 'linewidth',1)  % for x-axis
+line([0 0],ylim, 'color', 'k', 'linewidth',1)  % for y-axis
+
+ 
+grid on
+title('rQ3- BPSK Constellation Diagram');
+xlabel('real part');
+ylabel('imaginary part');
+
+
+%-----------Question 3 QPSK Constellation------
+clc 
+clear all
+close all
+num_symbols=10000;
+int_symbols=randi([1,4],1,num_symbols);
+%100000 random numbers in the range 1 to 4
+A=1/sqrt(2);
+qpsk_symbols(int_symbols==1)=A+i*A;
+qpsk_symbols(int_symbols==2)=A-i*A;
+qpsk_symbols(int_symbols==3)=-A+i*A;
+qpsk_symbols(int_symbols==4)=-A-i*A;
+
+plot(real(qpsk_symbols),imag(qpsk_symbols),'ored','linewidth',3);
+xlim([-2 2]);
+ylim([-2 2]);
+line(xlim,[0 0], 'color', 'k', 'linewidth',1)  % for x-axis
+line([0 0],ylim, 'color', 'k', 'linewidth',1)  % for y-axis
+
+hold on
+ezplot('x^2+y^2=1') 
+grid on
+title('rQ3- QPSK Constellation Diagram');
+xlabel('real part');
+ylabel('imaginary part');
+
+
+%--------Question 3 BER BPSK-------
+clc
+r=randi(1,10000);
+for i=1:10000
+    if r(i)==0
+        s(i)=-1;
+    else
+        s(i)=1;
+    end
+end
+k=1;
+for snrdb=1:1:10;
+    v=1/(10^(snrdb/10));
+x=awgn(s,snrdb,'measured');
+%n1=sqrt(v/2)*randn(1,10000);
+%170106
+%n2=sqrt(1/2)*randn(1,10000);
+%n=sqrt(n1.*n1+n2.*n2);
+y=x;
+for j=1:10000
+    if y(j)>0
+        z(j)=1;
+    else
+        z(j)=0;
+    end
+end
+error=length(find(z~=r));
+ber(k)=error/10000;
+k=k+1;
+end
+snrdb=1:1:10;
+snrlin=10.^(snrdb./10);
+tber=0.5.*erfc(sqrt(snrlin));
+semilogy(snrdb,ber,'-bo',snrdb,tber,'-mh')
+grid on
+title('rQ3-BPSK with AWGN');
+xlabel('Signal to noise ratio');
+ylabel('Bit error rate');
+
+
+%--------Question 3 BER QPSK-------
+
+l=10000;
+snrdb=1:1:10;
+snrlin=10.^(snrdb/10);
+for snrdb=1:1:10
+    si=2*(round(rand(1,l))-0.5);                      
+    sq=2*(round(rand(1,l))-0.5);                                    
+    s=si+j*sq;                               
+    w=awgn(s,snrdb,'measured');
+    r=w;                                           
+    si_=sign(real(r));                                
+    sq_=sign(imag(r));                               
+    ber1=(l-sum(si==si_))/l;                          
+    ber2=(l-sum(sq==sq_))/l;                          
+    ber(snrdb)=mean([ber1 ber2]);                         
+end
+%semilogy(snrdb, ber,'o-')
+snrdb=1:1:10;
+snrlin=10.^(snrdb./10);
+tber=0.5.*erfc(sqrt(snrlin));
+semilogy(snrdb,ber,'-bo',snrdb,tber,'-mh')
+title('rQ3-QPSK with awgn');
+xlabel('Signal to noise ratio');
+ylabel('Bit error rate');      
+grid on;
+
+------------------------------------------------------------
+%--------Question 4-------
+
+
+d=[1 0 1 1 0]; % Data sequence
+b=2*d-1; % Convert unipolar to bipolar
+T=1; % Bit duration
+Eb=T/2; % This will result in unit amplitude waveforms
+fc=3/T; % Carrier frequency
+t=linspace(0,5,1000); % discrete time sequence between 0 and 5*T (1000 samples)
+N=length(t); % Number of samples
+Nsb=N/length(d); % Number of samples per bit
+dd=repmat(d',1,Nsb); % replicate each bit Nsb times
+bb=repmat(b',1,Nsb); dw=dd'; % Transpose the rows and columns
+dw=dw(:)'; 
+% Convert dw to a column vector (colum by column) and convert to a row vector
+bw=bb';
+bw=bw(:)'; % Data sequence samples
+w=sqrt(2*Eb/T)*cos(2*pi*fc*t); % carrier waveform
+bpsk_w=bw.*w; % modulated waveform
+% plotting commands follow
+subplot(4,1,1);
+plot(t,dw); axis([0 5 -1.5 1.5])
+subplot(4,1,2);
+plot(t,bw); axis([0 5 -1.5 1.5])
+subplot(4,1,3);
+plot(t,w); axis([0 5 -1.5 1.5])
+subplot(4,1,4);
+plot(t,bpsk_w,'.'); axis([0 5 -1.5 1.5])
+title('BPSK Modulation (random) ');
+xlabel('time')
+N  = 10^3; % number of symbols
+am = 2*(rand(1,N)>0.5)-1 + j*(2*(rand(1,N)>0.5)-1); % generating random binary sequence
+fs = 10; % sampling frequency in Hz
+
+%170106 defining the sinc filter
+sincNum = sin(pi*[-fs:1/fs:fs]); % numerator of the sinc function
+sincDen = (pi*[-fs:1/fs:fs]); % denominator of the sinc function
+sincDenZero = find(abs(sincDen) < 10^-10);
+sincOp = sincNum./sincDen;
+sincOp(sincDenZero) = 1; % sin(pix/(pix) =1 for x =0
+
+% raised cosine filter
+alpha = 0.5;
+cosNum = cos(alpha*pi*[-fs:1/fs:fs]);
+cosDen = (1-(2*alpha*[-fs:1/fs:fs]).^2);
+cosDenZero = find(abs(cosDen)<10^-10);
+cosOp = cosNum./cosDen;
+cosOp(cosDenZero) = pi/4;
+
+gt_alpha5 = sincOp.*cosOp;
+
+alpha = 1;
+cosNum = cos(alpha*pi*[-fs:1/fs:fs]);
+cosDen = (1-(2*alpha*[-fs:1/fs:fs]).^2);
+cosDenZero = find(abs(cosDen)<10^-10);
+cosOp = cosNum./cosDen;
+cosOp(cosDenZero) = pi/4;
+gt_alpha1 = sincOp.*cosOp;
+
+% upsampling the transmit sequence 
+amUpSampled = [am;zeros(fs-1,length(am))];
+amU = amUpSampled(:).';
+
+% filtered sequence
+st_alpha5 = conv(amU,gt_alpha5);
+st_alpha1 = conv(amU,gt_alpha1);
+
+% taking only the first 10000 samples 
+st_alpha5 = st_alpha5([1:10000]);
+st_alpha1 = st_alpha1([1:10000]);
+
+st_alpha5_reshape = reshape(st_alpha5,fs*2,N*fs/20).';
+st_alpha1_reshape = reshape(st_alpha1,fs*2,N*fs/20).';
+
+close all
+figure;
+plot([0:1/fs:1.99],real(st_alpha5_reshape).','b');   
+title('eye diagram with alpha=0.5');
+xlabel('time')
+ylabel('amplitude') 
+axis([0 2 -1.5 1.5])
+grid on
+
+figure;
+plot([0:1/fs:1.99],real(st_alpha1_reshape).','b');  
+title('eye diagram with alpha=1') 
+xlabel('time')
+ylabel('amplitude') 
+axis([0 2 -1.5 1.5 ])
+grid on
+N  = 10^3; % number of symbols
+am = 2*(rand(1,N)>0.5)-1 + j*(2*(rand(1,N)>0.5)-1); % generating random binary sequence
+fs = 10; % sampling frequency in Hz
+
+% defining the sinc filter
+sincNum = sin(pi*[-fs:1/fs:fs]); % numerator of the sinc function
+sincDen = (pi*[-fs:1/fs:fs]); % denominator of the sinc function
+sincDenZero = find(abs(sincDen) < 10^-10);
+sincOp = sincNum./sincDen;
+sincOp(sincDenZero) = 1; % sin(pix/(pix) =1 for x =0
+
+% raised cosine filter
+alpha = 0.5;
+cosNum = cos(alpha*pi*[-fs:1/fs:fs]);
+cosDen = (1-(2*alpha*[-fs:1/fs:fs]).^2);
+cosDenZero = find(abs(cosDen)<10^-10);
+cosOp = cosNum./cosDen;
+cosOp(cosDenZero) = pi/4;
+
+gt_alpha5 = sincOp.*cosOp;
+
+alpha = 1;
+cosNum = cos(alpha*pi*[-fs:1/fs:fs]);
+cosDen = (1-(2*alpha*[-fs:1/fs:fs]).^2);
+cosDenZero = find(abs(cosDen)<10^-10);
+cosOp = cosNum./cosDen;
+cosOp(cosDenZero) = pi/4;
+gt_alpha1 = sincOp.*cosOp;
+
+% upsampling the transmit sequence 
+amUpSampled = [am;zeros(fs-1,length(am))];
+amU = amUpSampled(:).';
+
+% filtered sequence
+st_alpha5 = conv(amU,gt_alpha5);
+st_alpha1 = conv(amU,gt_alpha1);
+
+% taking only the first 10000 samples 
+st_alpha5 = st_alpha5([1:10000]);
+st_alpha1 = st_alpha1([1:10000]);
+
+st_alpha5_reshape = reshape(st_alpha5,fs*2,N*fs/20).';
+st_alpha1_reshape = reshape(st_alpha1,fs*2,N*fs/20).';
+
+close all
+figure;
+plot([0:1/fs:1.99],real(st_alpha5_reshape).','b');   
+title('rQ4-Eye Diagram with alpha=0.5');
+xlabel('time')
+ylabel('amplitude') 
+axis([0 2 -1.5 1.5])
+grid on
+
+figure;
+plot([0:1/fs:1.99],real(st_alpha1_reshape).','b');  
+title('rQ4-Eye Diagram with alpha=1') 
+xlabel('time')
+ylabel('amplitude') 
+axis([0 2 -1.5 1.5 ])
+grid on
+
+---------------------------------------------------------------
+%  RITU ANN ROY GEORGE B170106EC
+
+%  MATLAB ASSGT - 1 CODES
+---------------------------------------------------------------
